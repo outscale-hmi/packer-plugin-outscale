@@ -36,7 +36,7 @@ func (s *StepLinkVolume) Run(ctx context.Context, state multistep.StateBag) mult
 	ui.Say(fmt.Sprintf("Attaching the root volume to %s", linkVolume))
 	opts := oscgo.LinkVolumeRequest{
 		DeviceName: linkVolume,
-		VmId:       *vm.VmId,
+		VmId:       vm.GetVmId(),
 		VolumeId:   volumeId,
 	}
 	_, _, err := oscconn.Api.VolumeApi.LinkVolume(oscconn.Auth).LinkVolumeRequest(opts).Execute()

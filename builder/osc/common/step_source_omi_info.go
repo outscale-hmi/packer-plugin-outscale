@@ -29,8 +29,8 @@ type imageOscSort []oscgo.Image
 func (a imageOscSort) Len() int      { return len(a) }
 func (a imageOscSort) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a imageOscSort) Less(i, j int) bool {
-	itime, _ := time.Parse(time.RFC3339, *a[i].CreationDate)
-	jtime, _ := time.Parse(time.RFC3339, *a[j].CreationDate)
+	itime, _ := time.Parse(time.RFC3339, a[i].GetCreationDate())
+	jtime, _ := time.Parse(time.RFC3339, a[j].GetCreationDate())
 	return itime.Unix() < jtime.Unix()
 }
 
@@ -88,14 +88,14 @@ func (s *StepSourceOMIInfo) Run(_ context.Context, state multistep.StateBag) mul
 		return multistep.ActionHalt
 	}
 
-	if len(*imageResp.Images) == 0 {
+	if len(imageResp.GetImages()) == 0 {
 		err := fmt.Errorf("No OMI was found matching filters: %#v", params)
 		state.Put("error", err)
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
 
-	if len(*imageResp.Images) > 1 && !s.OmiFilters.MostRecent {
+	if len(imageResp.GetImages()) > 1 && !s.OmiFilters.MostRecent {
 		err := fmt.Errorf("your query returned more than one result. Please try a more specific search, or set most_recent to true")
 		state.Put("error", err)
 		ui.Error(err.Error())
@@ -104,7 +104,7 @@ func (s *StepSourceOMIInfo) Run(_ context.Context, state multistep.StateBag) mul
 
 	var image oscgo.Image
 	if s.OmiFilters.MostRecent {
-		image = mostRecentOscOmi(*imageResp.Images)
+		image = mostRecentOscOmi(imageResp.GetImages())
 	} else {
 		image = imageResp.GetImages()[0]
 	}

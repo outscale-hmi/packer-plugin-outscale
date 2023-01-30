@@ -121,7 +121,7 @@ func waitUntilOscVolumeLinkedStateFunc(conn *OscClient, id string) stateRefreshF
 			return "pending", nil
 		}
 
-		if len(*resp.GetVolumes()[0].LinkedVolumes) == 0 {
+		if len(resp.GetVolumes()[0].GetLinkedVolumes()) == 0 {
 			return "pending", nil
 		}
 		volume := resp.GetVolumes()[0]
@@ -144,7 +144,7 @@ func waitUntilOscVolumeUnLinkedStateFunc(conn *OscClient, id string) stateRefres
 			return "pending", nil
 		}
 
-		if len(*resp.GetVolumes()[0].LinkedVolumes) == 0 {
+		if len(resp.GetVolumes()[0].GetLinkedVolumes()) == 0 {
 			return "dettached", nil
 		}
 
@@ -167,7 +167,7 @@ func waitUntilOscSnapshotStateFunc(conn *OscClient, id string) stateRefreshFunc 
 			return "pending", nil
 		}
 
-		return *resp.GetSnapshots()[0].State, nil
+		return resp.GetSnapshots()[0].GetState(), nil
 	}
 }
 
@@ -186,8 +186,8 @@ func waitUntilOscImageStateFunc(conn *OscClient, id string) stateRefreshFunc {
 			return "pending", nil
 		}
 
-		if *resp.GetImages()[0].State == "failed" {
-			return *resp.GetImages()[0].State, fmt.Errorf("Image (%s) creation is failed", id)
+		if resp.GetImages()[0].GetState() == "failed" {
+			return resp.GetImages()[0].GetState(), fmt.Errorf("Image (%s) creation is failed", id)
 		}
 
 		return resp.GetImages()[0].GetState(), nil
@@ -209,11 +209,11 @@ func waitUntilOscSnapshotDoneStateFunc(conn *OscClient, id string) stateRefreshF
 			return "", fmt.Errorf("Snapshot with ID %s. Not Found", id)
 		}
 
-		if *resp.GetSnapshots()[0].State == "error" {
-			return *resp.GetSnapshots()[0].State, fmt.Errorf("Snapshot (%s) creation is failed", id)
+		if resp.GetSnapshots()[0].GetState() == "error" {
+			return resp.GetSnapshots()[0].GetState(), fmt.Errorf("Snapshot (%s) creation is failed", id)
 		}
 
-		return *resp.GetSnapshots()[0].State, nil
+		return resp.GetSnapshots()[0].GetState(), nil
 	}
 }
 
@@ -232,10 +232,10 @@ func volumeOscWaitFunc(conn *OscClient, id string) stateRefreshFunc {
 			return "waiting", nil
 		}
 
-		if *resp.GetVolumes()[0].State == "error" {
-			return *resp.GetVolumes()[0].State, fmt.Errorf("Volume (%s) creation is failed", id)
+		if resp.GetVolumes()[0].GetState() == "error" {
+			return resp.GetVolumes()[0].GetState(), fmt.Errorf("Volume (%s) creation is failed", id)
 		}
 
-		return *resp.GetVolumes()[0].State, nil
+		return resp.GetVolumes()[0].GetState(), nil
 	}
 }

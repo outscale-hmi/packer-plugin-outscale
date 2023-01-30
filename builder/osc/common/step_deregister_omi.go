@@ -47,7 +47,7 @@ func (s *StepDeregisterOMI) Run(_ context.Context, state multistep.StateBag) mul
 			return multistep.ActionHalt
 		}
 
-		log.Printf("LOG_ resp.Images: %#+v\n", resp.Images)
+		log.Printf("LOG_ resp.Images: %#+v\n", resp.GetImages())
 
 		// Deregister image(s) by name
 		for i := range resp.GetImages() {
@@ -68,7 +68,7 @@ func (s *StepDeregisterOMI) Run(_ context.Context, state multistep.StateBag) mul
 			// Delete snapshot(s) by image
 			if s.ForceDeleteSnapshot {
 				for _, b := range resp.GetImages()[i].GetBlockDeviceMappings() {
-					if b.Bsu.SnapshotId != nil {
+					if b.GetBsu().SnapshotId != nil {
 						request := oscgo.DeleteSnapshotRequest{SnapshotId: *b.GetBsu().SnapshotId}
 						_, _, err := conn.Api.SnapshotApi.DeleteSnapshot(conn.Auth).DeleteSnapshotRequest(request).Execute()
 						if err != nil {

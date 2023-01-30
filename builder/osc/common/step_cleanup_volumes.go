@@ -31,7 +31,7 @@ func (s *StepCleanupVolumes) Cleanup(state multistep.StateBag) {
 		vm = vmRaw.(oscgo.Vm)
 	}
 	ui := state.Get("ui").(packersdk.Ui)
-	if vm.VmId == nil {
+	if vm.GetVmId() == " " {
 		ui.Say("No volumes to clean up, skipping")
 		return
 	}
@@ -42,10 +42,10 @@ func (s *StepCleanupVolumes) Cleanup(state multistep.StateBag) {
 	// to device name, to compare with save list below
 	var vl []string
 	volList := make(map[string]string)
-	for _, bdm := range *vm.BlockDeviceMappings {
+	for _, bdm := range vm.GetBlockDeviceMappings() {
 		if bdm.Bsu != nil {
 			vl = append(vl, *bdm.GetBsu().VolumeId)
-			volList[bdm.Bsu.GetVolumeId()] = bdm.GetDeviceName()
+			volList[*bdm.GetBsu().VolumeId] = bdm.GetDeviceName()
 		}
 	}
 
@@ -62,8 +62,8 @@ func (s *StepCleanupVolumes) Cleanup(state multistep.StateBag) {
 	// If any of the returned volumes are in a "deleting" stage or otherwise not
 	// available, remove them from the list of volumes
 	for _, v := range resp.GetVolumes() {
-		if v.State != nil && *v.State != "available" {
-			delete(volList, *v.VolumeId)
+		if v.State != nil && v.GetState() != "available" {
+			delete(volList, v.GetVolumeId())
 		}
 	}
 

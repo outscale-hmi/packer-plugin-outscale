@@ -45,7 +45,7 @@ func buildOscBlockDevicesImage(b []BlockDevice) []oscgo.BlockDeviceMappingImage 
 
 		if blockDevice.VirtualName != "" {
 			if strings.HasPrefix(blockDevice.VirtualName, "ephemeral") {
-				mapping.VirtualDeviceName = &blockDevice.VirtualName
+				mapping.SetVirtualDeviceName(blockDevice.VirtualName)
 			}
 		} else {
 			bsu := oscgo.BsuToCreate{
@@ -53,20 +53,20 @@ func buildOscBlockDevicesImage(b []BlockDevice) []oscgo.BlockDeviceMappingImage 
 			}
 
 			if blockDevice.VolumeType != "" {
-				bsu.VolumeType = &blockDevice.VolumeType
+				bsu.SetVolumeType(blockDevice.VolumeType)
 			}
 
 			if blockDevice.VolumeSize > 0 {
-				bsu.VolumeSize = oscgo.PtrInt32(int32(blockDevice.VolumeSize))
+				bsu.SetVolumeSize(int32(blockDevice.VolumeSize))
 			}
 
 			// IOPS is only valid for io1 type
 			if blockDevice.VolumeType == "io1" {
-				bsu.Iops = oscgo.PtrInt32(int32(blockDevice.IOPS))
+				bsu.SetIops(int32(blockDevice.IOPS))
 			}
 
 			if blockDevice.SnapshotId != "" {
-				bsu.SnapshotId = &blockDevice.SnapshotId
+				bsu.SetSnapshotId(blockDevice.SnapshotId)
 			}
 
 			mapping.Bsu = &bsu
@@ -92,7 +92,7 @@ func buildOscBlockDevicesVmCreation(b []BlockDevice) []oscgo.BlockDeviceMappingV
 			//blockDevices = mapping[0]
 		} else if blockDevice.VirtualName != "" {
 			if strings.HasPrefix(blockDevice.VirtualName, "ephemeral") {
-				mapping.VirtualDeviceName = &blockDevice.VirtualName
+				mapping.SetVirtualDeviceName(blockDevice.VirtualName)
 			}
 		} else {
 			bsu := oscgo.BsuToCreate{
@@ -100,21 +100,21 @@ func buildOscBlockDevicesVmCreation(b []BlockDevice) []oscgo.BlockDeviceMappingV
 			}
 
 			if blockDevice.VolumeType != "" {
-				bsu.VolumeType = &blockDevice.VolumeType
+				bsu.SetVolumeType(blockDevice.VolumeType)
 			}
 
 			if blockDevice.VolumeSize > 0 {
-				bsu.VolumeSize = oscgo.PtrInt32(int32(blockDevice.VolumeSize))
+				bsu.SetVolumeSize(int32(blockDevice.VolumeSize))
 
 			}
 
 			// IOPS is only valid for io1 type
 			if blockDevice.VolumeType == "io1" {
-				bsu.Iops = oscgo.PtrInt32(int32(blockDevice.IOPS))
+				bsu.SetIops(int32(blockDevice.IOPS))
 			}
 
 			if blockDevice.SnapshotId != "" {
-				bsu.SnapshotId = &blockDevice.SnapshotId
+				bsu.SetSnapshotId(blockDevice.SnapshotId)
 			}
 
 			mapping.Bsu = &bsu

@@ -73,9 +73,9 @@ func (s *StepRunSourceVm) Run(ctx context.Context, state multistep.StateBag) mul
 		state.Put("error", fmt.Errorf("source_image type assertion failed"))
 		return multistep.ActionHalt
 	}
-	s.SourceOMI = *image.ImageId
+	s.SourceOMI = image.GetImageId()
 
-	if s.ExpectedRootDevice != "" && *image.RootDeviceType != s.ExpectedRootDevice {
+	if s.ExpectedRootDevice != "" && image.GetRootDeviceType() != s.ExpectedRootDevice {
 		state.Put("error", fmt.Errorf(
 			"The provided source OMI has an invalid root device type.\n"+
 				"Expected '%s', got '%s'.",
@@ -142,8 +142,8 @@ func (s *StepRunSourceVm) Run(ctx context.Context, state multistep.StateBag) mul
 		ui.Error(err.Error())
 		return multistep.ActionHalt
 	}
-	vmId = *runResp.GetVms()[0].VmId
-	volumeId := *runResp.GetVms()[0].GetBlockDeviceMappings()[0].Bsu.VolumeId
+	vmId = runResp.GetVms()[0].GetVmId()
+	volumeId := runResp.GetVms()[0].GetBlockDeviceMappings()[0].GetBsu().VolumeId
 
 	// Set the vm ID so that the cleanup works properly
 	s.vmId = vmId
@@ -174,8 +174,8 @@ func (s *StepRunSourceVm) Run(ctx context.Context, state multistep.StateBag) mul
 	}
 
 	if len(volTags) > 0 {
-		if err := CreateOSCTags(oscconn, volumeId, ui, volTags); err != nil {
-			err := fmt.Errorf("Error creating tags for volume (%s): %s", volumeId, err)
+		if err := CreateOSCTags(oscconn, *volumeId, ui, volTags); err != nil {
+			err := fmt.Errorf("Error creating tags for volume (%s): %s", *volumeId, err)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
@@ -257,9 +257,9 @@ func (s *StepRunSourceVm) Run(ctx context.Context, state multistep.StateBag) mul
 		// Now tag volumes
 
 		volumeIds := make([]string, 0)
-		for _, v := range *vm.BlockDeviceMappings {
+		for _, v := range vm.GetBlockDeviceMappings() {
 			if bsu := v.Bsu; !reflect.DeepEqual(bsu, osc.BsuCreated{}) {
-				volumeIds = append(volumeIds, *bsu.VolumeId)
+				volumeIds = append(volumeIds, bsu.GetVolumeId())
 			}
 		}
 

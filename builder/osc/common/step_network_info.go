@@ -35,8 +35,8 @@ type subnetsOscSort []oscgo.Subnet
 func (a subnetsOscSort) Len() int      { return len(a) }
 func (a subnetsOscSort) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a subnetsOscSort) Less(i, j int) bool {
-	availableIpCount := (*a[i].AvailableIpsCount)
-	availableIpsCount := (*a[j].AvailableIpsCount)
+	availableIpCount := (a[i].GetAvailableIpsCount())
+	availableIpsCount := (a[j].GetAvailableIpsCount())
 	return availableIpCount < availableIpsCount
 }
 
@@ -56,7 +56,7 @@ func (s *StepNetworkInfo) Run(_ context.Context, state multistep.StateBag) multi
 	if s.NetId == "" && !s.NetFilter.Empty() {
 		params := oscgo.ReadNetsRequest{}
 		netFilter := buildOscNetFilters(s.NetFilter.Filters)
-		params.Filters = &netFilter
+		params.SetFilters(netFilter)
 		s.NetFilter.Filters["state"] = "available"
 
 		log.Printf("Using NET Filters %v", params)
@@ -69,14 +69,14 @@ func (s *StepNetworkInfo) Run(_ context.Context, state multistep.StateBag) multi
 			return multistep.ActionHalt
 		}
 
-		if len(*vpcResp.Nets) != 1 {
-			err := fmt.Errorf("Exactly one NET should match the filter, but %d NET's was found matching filters: %v", len(*vpcResp.Nets), params)
+		if len(vpcResp.GetNets()) != 1 {
+			err := fmt.Errorf("Exactly one NET should match the filter, but %d NET's was found matching filters: %v", len(vpcResp.GetNets()), params)
 			state.Put("error", err)
 			ui.Error(err.Error())
 			return multistep.ActionHalt
 		}
 
-		s.NetId = *vpcResp.GetNets()[0].NetId
+		s.NetId = (*vpcResp.Nets)[0].GetNetId()
 		ui.Message(fmt.Sprintf("Found NET ID: %s", s.NetId))
 	}
 
@@ -92,7 +92,7 @@ func (s *StepNetworkInfo) Run(_ context.Context, state multistep.StateBag) multi
 			s.SubnetFilter.Filters["availability-zone"] = s.SubregionName
 		}
 		subnetFilter := buildOscSubnetFilters(s.SubnetFilter.Filters)
-		params.Filters = &subnetFilter
+		params.SetFilters(subnetFilter)
 		log.Printf("Using Subnet Filters %v", params)
 
 		subnetsResp, _, err := oscconn.Api.SubnetApi.ReadSubnets(oscconn.Auth).ReadSubnetsRequest(params).Execute()
@@ -103,7 +103,7 @@ func (s *StepNetworkInfo) Run(_ context.Context, state multistep.StateBag) multi
 			return multistep.ActionHalt
 		}
 
-		if len(*subnetsResp.Subnets) == 0 {
+		if len(subnetsResp.GetSubnets()) == 0 {
 			err := fmt.Errorf("No Subnets was found matching filters: %v", params)
 			state.Put("error", err)
 			ui.Error(err.Error())
@@ -120,7 +120,7 @@ func (s *StepNetworkInfo) Run(_ context.Context, state multistep.StateBag) multi
 		var subnet oscgo.Subnet
 		switch {
 		case s.SubnetFilter.MostFree:
-			subnet = mostFreeOscSubnet(*subnetsResp.Subnets)
+			subnet = mostFreeOscSubnet(subnetsResp.GetSubnets())
 		case s.SubnetFilter.Random:
 			subnet = subnetsResp.GetSubnets()[rand.Intn(len(subnetsResp.GetSubnets()))]
 		default:
@@ -149,11 +149,11 @@ func (s *StepNetworkInfo) Run(_ context.Context, state multistep.StateBag) multi
 			log.Printf("[INFO] SubregionName found: '%s'", s.SubregionName)
 		}
 		if s.NetId == "" {
-			s.NetId = resp.GetSubnets()[0].GetNetId()
-			log.Printf("[INFO] NetId found: '%s'", s.NetId)
+			s.NetId = (*resp.Subnets)[0].GetNetId()
 		}
 	}
 
+	ui.Message(fmt.Sprintf("NetId is null '%s'", s.NetId))
 	state.Put("net_id", s.NetId)
 	state.Put("subregion_name", s.SubregionName)
 	state.Put("subnet_id", s.SubnetId)

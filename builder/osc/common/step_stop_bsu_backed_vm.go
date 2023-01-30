@@ -44,7 +44,7 @@ func (s *StepStopBSUBackedVm) Run(ctx context.Context, state multistep.StateBag)
 			ui.Message(fmt.Sprintf("Stopping vm, attempt %d", i+1))
 
 			_, _, err = oscconn.Api.VmApi.StopVms(oscconn.Auth).StopVmsRequest(oscgo.StopVmsRequest{
-				VmIds: []string{*vm.VmId},
+				VmIds: []string{vm.GetVmId()},
 			}).Execute()
 			if err == nil {
 				// success
@@ -79,9 +79,9 @@ func (s *StepStopBSUBackedVm) Run(ctx context.Context, state multistep.StateBag)
 	ui.Say("Waiting for the vm to stop...")
 	switch vm.GetVmInitiatedShutdownBehavior() {
 	case StopShutdownBehavior:
-		err = waitUntilOscVmStopped(oscconn, *vm.VmId)
+		err = waitUntilOscVmStopped(oscconn, vm.GetVmId())
 	case TerminateShutdownBehavior:
-		err = waitUntilOscVmDeleted(oscconn, *vm.VmId)
+		err = waitUntilOscVmDeleted(oscconn, vm.GetVmId())
 	default:
 		err := fmt.Errorf("Wrong value for the shutdown behavior")
 		state.Put("error", err)

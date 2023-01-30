@@ -21,15 +21,15 @@ func extractBuildInfo(region string, state multistep.StateBag) *BuildInfoTemplat
 	}
 
 	sourceOMI := rawSourceOMI.(oscgo.Image)
-	sourceOMITags := make(map[string]string, len(*sourceOMI.Tags))
-	for _, tag := range *sourceOMI.Tags {
-		sourceOMITags[tag.Key] = tag.Value
+	sourceOMITags := make(map[string]string, len(sourceOMI.GetTags()))
+	for _, tag := range sourceOMI.GetTags() {
+		sourceOMITags[tag.GetKey()] = tag.GetValue()
 	}
 
 	return &BuildInfoTemplate{
 		BuildRegion:   region,
-		SourceOMI:     *sourceOMI.ImageId,
-		SourceOMIName: *sourceOMI.ImageName,
+		SourceOMI:     sourceOMI.GetImageId(),
+		SourceOMIName: sourceOMI.GetImageName(),
 		SourceOMITags: sourceOMITags,
 	}
 }

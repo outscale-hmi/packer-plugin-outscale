@@ -100,8 +100,8 @@ func (s *stepCreateOMI) Run(ctx context.Context, state multistep.StateBag) multi
 	snapshots := make(map[string][]string)
 	blockMapping := imagesResp.GetImages()[0].GetBlockDeviceMappings()
 	for _, blockDeviceMapping := range blockMapping {
-		if blockDeviceMapping.Bsu.SnapshotId != nil {
-			snapshots[s.RawRegion] = append(snapshots[s.RawRegion], *blockDeviceMapping.Bsu.SnapshotId)
+		if blockDeviceMapping.GetBsu().SnapshotId != nil {
+			snapshots[s.RawRegion] = append(snapshots[s.RawRegion], *blockDeviceMapping.GetBsu().SnapshotId)
 		}
 	}
 	state.Put("snapshots", snapshots)

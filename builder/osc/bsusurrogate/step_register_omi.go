@@ -3,6 +3,7 @@ package bsusurrogate
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 	packersdk "github.com/hashicorp/packer-plugin-sdk/packer"
@@ -121,8 +122,8 @@ func (s *StepRegisterOMI) combineDevices(snapshotIDs map[string]string) []oscgo.
 	// one designated as the root device in ami_root_device
 	for _, device := range s.LaunchDevices {
 		snapshotID, ok := snapshotIDs[device.GetDeviceName()]
-		if ok {
-			device.Bsu.SnapshotId = &snapshotID
+		if ok && snapshotID != "" {
+			device.Bsu.SetSnapshotId(snapshotID)
 		}
 		if device.GetDeviceName() == s.RootDevice.SourceDeviceName {
 			device.DeviceName = &s.RootDevice.DeviceName
@@ -130,7 +131,7 @@ func (s *StepRegisterOMI) combineDevices(snapshotIDs map[string]string) []oscgo.
 			if _, ok := device.Bsu.GetVolumeTypeOk(); ok {
 				device.Bsu.SetVolumeType(s.RootDevice.VolumeType)
 				if device.Bsu.GetVolumeType() != "io1" {
-					*device.Bsu.Iops = 0
+					device.Bsu.SetIops(0)
 				}
 			}
 
@@ -146,16 +147,21 @@ func (s *StepRegisterOMI) combineDevices(snapshotIDs map[string]string) []oscgo.
 }
 
 func copyToDeviceMappingImage(device osc.BlockDeviceMappingVmCreation) oscgo.BlockDeviceMappingImage {
+	log.Printf("Copydevice mapping image ")
 	deviceImage := oscgo.BlockDeviceMappingImage{
 		DeviceName:        device.DeviceName,
 		VirtualDeviceName: device.VirtualDeviceName,
 		Bsu: &oscgo.BsuToCreate{
 			DeleteOnVmDeletion: device.Bsu.DeleteOnVmDeletion,
-			Iops:               device.Bsu.Iops,
-			SnapshotId:         device.Bsu.SnapshotId,
 			VolumeSize:         device.Bsu.VolumeSize,
 			VolumeType:         device.Bsu.VolumeType,
 		},
+	}
+	if device.Bsu.GetSnapshotId() != "" {
+		deviceImage.Bsu.SetSnapshotId(*oscgo.PtrString(*device.Bsu.SnapshotId))
+	}
+	if device.Bsu.GetIops() != 0 {
+		deviceImage.Bsu.SetIops(*device.Bsu.Iops)
 	}
 	return deviceImage
 }

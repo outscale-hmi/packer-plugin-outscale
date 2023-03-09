@@ -108,30 +108,39 @@ func (s *StepRunSourceVm) Run(ctx context.Context, state multistep.StateBag) mul
 		return multistep.ActionHalt
 	}
 
-	subregion := state.Get("subregion_name").(string)
+	blockDevice := s.BlockDevices.BuildOSCLaunchDevices()
 	vmcount := int32(1)
+	subregion := state.Get("subregion_name").(string)
+
 	runOpts := oscgo.CreateVmsRequest{
-		ImageId:      s.SourceOMI,
-		VmType:       &s.VmType,
-		UserData:     &userData,
-		MaxVmsCount:  &vmcount,
-		MinVmsCount:  &vmcount,
-		Placement:    &oscgo.Placement{SubregionName: &subregion},
-		BsuOptimized: &s.BsuOptimized,
-		//BlockDeviceMappings: s.BlockDevices.BuildOSCLaunchDevices(),
+		ImageId:             s.SourceOMI,
+		VmType:              &s.VmType,
+		UserData:            &userData,
+		MaxVmsCount:         &vmcount,
+		MinVmsCount:         &vmcount,
+		BsuOptimized:        &s.BsuOptimized,
+		BlockDeviceMappings: &blockDevice,
+	}
+
+	log.Printf("subregion is %s", subregion)
+	if subregion != "" {
+		log.Printf("placement subregion is %s", subregion)
+		runOpts.SetPlacement(oscgo.Placement{SubregionName: &subregion})
 	}
 
 	if s.Comm.SSHKeyPairName != "" {
-		runOpts.KeypairName = &s.Comm.SSHKeyPairName
+		ui.Say("ssh keypaieame  ")
+		runOpts.SetKeypairName(s.Comm.SSHKeyPairName)
 	}
 
 	subnetID := state.Get("subnet_id").(string)
+	ui.Say("Run subnnetId")
 
-	runOpts.SubnetId = &subnetID
-	runOpts.SecurityGroupIds = &securityGroupIds
+	runOpts.SetSubnetId(subnetID)
+	runOpts.SetSecurityGroupIds(securityGroupIds)
 
 	if s.ExpectedRootDevice == "bsu" {
-		runOpts.VmInitiatedShutdownBehavior = &s.VmInitiatedShutdownBehavior
+		runOpts.SetVmInitiatedShutdownBehavior(s.VmInitiatedShutdownBehavior)
 	}
 
 	runResp, _, err := oscconn.Api.VmApi.CreateVms(oscconn.Auth).CreateVmsRequest(runOpts).Execute()

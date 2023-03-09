@@ -31,7 +31,7 @@ func (s *StepSnapshotVolumes) snapshotVolume(ctx context.Context, deviceName str
 	var volumeId string
 	for _, volume := range *vm.BlockDeviceMappings {
 		if volume.GetDeviceName() == deviceName {
-			volumeId = volume.Bsu.GetVolumeId()
+			volumeId = *volume.GetBsu().VolumeId
 		}
 	}
 	if volumeId == "" {
@@ -51,7 +51,7 @@ func (s *StepSnapshotVolumes) snapshotVolume(ctx context.Context, deviceName str
 	}
 
 	// Set the snapshot ID so we can delete it later
-	s.snapshotIds[deviceName] = *createSnapResp.Snapshot.SnapshotId
+	s.snapshotIds[deviceName] = createSnapResp.Snapshot.GetSnapshotId()
 
 	// Wait for snapshot to be created
 	err = osccommon.WaitUntilOscSnapshotCompleted(oscconn, *createSnapResp.Snapshot.SnapshotId)

@@ -84,8 +84,11 @@ func (s *StepSecurityGroup) Run(_ context.Context, state multistep.StateBag) mul
 
 	createSGReq := oscgo.CreateSecurityGroupRequest{
 		SecurityGroupName: groupName,
-		NetId:             oscgo.PtrString(netID),
 		Description:       "Temporary group for Packer",
+	}
+
+	if netID != "" {
+		createSGReq.SetNetId(netID)
 	}
 
 	resp, _, err := conn.Api.SecurityGroupApi.CreateSecurityGroup(conn.Auth).CreateSecurityGroupRequest(createSGReq).Execute()

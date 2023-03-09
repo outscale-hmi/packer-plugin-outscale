@@ -114,11 +114,14 @@ func buildOscBlockDevicesVmCreation(b []BlockDevice) []oscgo.BlockDeviceMappingV
 			}
 
 			if blockDevice.SnapshotId != "" {
+				log.Printf("snapshotId is nt nul ")
 				bsu.SetSnapshotId(blockDevice.SnapshotId)
 			}
 
-			mapping.Bsu = &bsu
+			mapping.SetBsu(bsu)
 		}
+
+		log.Printf("block device mapping")
 
 		blockDevices = append(blockDevices, mapping)
 	}

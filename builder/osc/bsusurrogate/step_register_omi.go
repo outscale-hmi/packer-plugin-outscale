@@ -128,7 +128,7 @@ func (s *StepRegisterOMI) combineDevices(snapshotIDs map[string]string) []oscgo.
 			device.DeviceName = &s.RootDevice.DeviceName
 
 			if _, ok := device.Bsu.GetVolumeTypeOk(); ok {
-				device.Bsu.VolumeType = &s.RootDevice.VolumeType
+				device.Bsu.SetVolumeType(s.RootDevice.VolumeType)
 				if device.Bsu.GetVolumeType() != "io1" {
 					*device.Bsu.Iops = 0
 				}
